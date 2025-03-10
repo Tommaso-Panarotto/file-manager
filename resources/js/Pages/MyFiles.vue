@@ -72,20 +72,22 @@
 
 <script setup>
 import FileIcon from '@/Components/app/FileIcon.vue';
+import { httpGet } from '@/Helper/http-helper';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { onMounted, onUpdated, ref } from 'vue';
 
 const loadMoreIntersect = ref(null)
-const allFiles = ref({
-    data: [],
-    next: null,
-})
 
 const props = defineProps({
     files: Object,
     folder: Object,
     ancestors: Object,
+})
+
+const allFiles = ref({
+    data: props.files.data,
+    next: props.files.links.next
 })
 
 function openFolder(file) {
@@ -98,7 +100,18 @@ function openFolder(file) {
 }
 
 function loadMore() {
-    
+    console.log("load more");
+    console.log(allFiles.value.next);
+
+    if (allFiles.value.next === null) {
+        return
+    }
+
+    httpGet(allFiles.value.next)
+        .then(res => {
+            allFiles.value.data = [...allFiles.value.data, ...res.data]
+            allFiles.value.next = res.links.next
+        })
 }
 
 onUpdated(() => {

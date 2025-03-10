@@ -14,7 +14,7 @@ use App\Models\File;
 
 class FileController extends Controller
 {
-    public function myFiles(string $folder = null)
+    public function myFiles(Request $request, string $folder = null)
     {
         if($folder){
             $folder = File::query()->where('created_by', Auth::id())->where('path', $folder)->firstOrFail();
@@ -30,6 +30,10 @@ class FileController extends Controller
         ->paginate(10);
 
         $files = FileResource::collection($files);
+
+        if($request->wantsJson()){
+            return $files;
+        }
 
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
 
