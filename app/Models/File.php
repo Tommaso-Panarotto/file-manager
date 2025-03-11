@@ -11,17 +11,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Kalnoy\Nestedset\NodeTrait;
 use App\Traits\HasCreatorAndUpdater;
+use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
     use HasFactory, HasCreatorAndUpdater, NodeTrait, SoftDeletes;
 
-    public function user():BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function parent():BelongsTo
+    public function parent()
     {
         return $this->belongsTo(File::class, 'parent_id');
     }
@@ -58,12 +59,17 @@ class File extends Model
     {
         parent::boot();
 
-        static::creating(function($model){
-            if(!$model->parent){
+        static::creating(function ($model) {
+            if (!$model->parent) {
                 return;
             }
-
-            $model->path = (!$model->parent->isRoot() ? $model->parent->path . '/' : '') . Str::slug($model->name);
+            $model->path = ( !$model->parent->isRoot() ? $model->parent->path . '/' : '' ) . Str::slug($model->name);
         });
+
+        //static::deleted(function(File $model){
+        //    if (!$model->is_folder){
+        //        Storage::delete($model->storage_path);
+        //    }
+        //});
     }
 }
