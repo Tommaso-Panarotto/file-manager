@@ -25,6 +25,7 @@
                 </li>
             </ol>
             <div>
+                <StarFilesButton :all-selected="allSelected" :selected-ids="selectedIds" class="mr-2" />
                 <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
                 <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @clean="cleanIds" />
             </div>
@@ -88,6 +89,7 @@
 import DeleteFilesButton from '@/Components/app/DeleteFilesButton.vue';
 import DownloadFilesButton from '@/Components/app/DownloadFilesButton.vue';
 import FileIcon from '@/Components/app/FileIcon.vue';
+import StarFilesButton from '@/Components/app/AddToFavouritesButton.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { httpGet } from '@/Helper/http-helper';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
