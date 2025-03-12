@@ -129,7 +129,6 @@ class FileController extends Controller
                 $child->delete();
             }
         } else{
-
             foreach ($data['ids'] ?? [] as $id) {
                 $file = File::find($id);
                 $file->delete();

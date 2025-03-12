@@ -26,7 +26,7 @@
             </ol>
             <div>
                 <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
-                <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" />
+                <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @clean="cleanIds" />
             </div>
         </nav>
         <div class="flex-1 overflow-auto">
@@ -111,7 +111,11 @@ const allFiles = ref({
     next: props.files.links.next
 })
 
-const selectedIds = computed(() => Object.entries(selected.value).filter(a => a[1]).map(a => a[0]))
+let selectedIds = computed(() => Object.entries(selected.value).filter(a => a[1]).map(a => a[0]))
+
+function cleanIds() {
+    selected.value = {}
+}
 
 function openFolder(file) {
 
