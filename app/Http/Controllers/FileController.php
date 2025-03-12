@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddToFavouritesRequest;
 use App\Http\Requests\FilesActionRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use App\Models\File;
+use App\Models\StarredFile;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
@@ -26,12 +29,24 @@ class FileController extends Controller
         if(!$folder){
             $folder = $this->getRoot();
         }
-        $files = File::query()
+
+        $favourites = (int)$request->get('favourites');
+        
+
+        $query = File::query()
+        ->select('files.*')
+        ->with('starred')
         ->where('parent_id', $folder->id)
         ->where('created_by', Auth::id())
         ->orderBy('is_folder', 'desc')
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        ->orderBy('files.created_at', 'desc')
+        ->orderBy('files.id', 'desc');
+        if ($favourites === 1) {
+            $query->join('starred_files', 'starred_files.file_id', '=', 'files.id')
+            ->where('starred_files.user_id', Auth::id());
+        }
+
+        $files = $query->paginate(10);
 
         $files = FileResource::collection($files);
 
@@ -279,5 +294,34 @@ class FileController extends Controller
         }
 
         return to_route('trash');
+    }
+
+    public function addTofavourites(AddToFavouritesRequest $request)
+    {
+        $data = $request->validated();
+
+        $id = $data['id'];
+        $file = File::find($id);
+        $user_id = Auth::id();
+
+        $starred = StarredFile::query()
+        ->where('file_id', $id)
+        ->where('user_id', $user_id)
+        ->first();
+
+        if ($starred) {
+            $starred->delete();
+        } else {
+
+            StarredFile::create([
+               'file_id' => $file->id,
+               'user_id' => $user_id,
+               'created_at' => Carbon::now(),
+               'updated_at' => Carbon::now(),
+            ]);
+
+        }
+
+        return redirect()->back();
     }
 }
