@@ -1,32 +1,9 @@
 <template>
     <AuthenticatedLayout>
-        <nav class="flex items-center justify-between p-1 mb-">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li v-for="ans of ancestors.data" :key="ans.id" class="inline-flex items-center">
-                    <Link v-if="!ans.parent_id" :href="route('myFiles')"
-                        class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 gap-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                    </svg>
-                    MyFiles
-                    </Link>
-                    <div v-else class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                        </svg>
-                        <Link :href="route('myFiles', { folder: ans.path })"
-                            class="ml-1 text-sm font-medium text-gray-600 hover:text-blue-600">
-                        {{ ans.name }}
-                        </Link>
-                    </div>
-                </li>
-            </ol>
+        <nav class="flex items-center justify-end p-1 mb-">
             <div>
-                <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
-                <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @clean="cleanIds" />
+                <DeleteForeverButton :all-selected="allSelected" :selected-ids="selectedIds" @clean="cleanIds" />
+                <RestoreFilesButton :all-selected="allSelected" :selected-ids="selectedIds" @clean="cleanIds" />
             </div>
         </nav>
         <div class="flex-1 overflow-auto">
@@ -40,19 +17,13 @@
                             Name
                         </th>
                         <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                            Owner
-                        </th>
-                        <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                            Last Modified
-                        </th>
-                        <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                            Size
+                            Path
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr @dblclick="openFolder(file)" @click="$event => toggleFileSelect(file, i, $event)"
-                        v-for="(file, i) of allFiles.data" :key="file.id"
+                    <tr @click="$event => toggleFileSelect(file, i, $event)" v-for="(file, i) of allFiles.data"
+                        :key="file.id"
                         class="cursor-pointer border-b transition duration-300 ease-in-out hover:bg-blue-100"
                         :class="(selected[file.id] || allSelected) ? 'bg-blue-50' : 'bg-white'">
                         <td
@@ -65,13 +36,7 @@
                             {{ file.name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ file.owner }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ file.updated_at }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ file.size }}
+                            {{ file.path }}
                         </td>
                     </tr>
                 </tbody>
@@ -85,13 +50,12 @@
 </template>
 
 <script setup>
-import DeleteFilesButton from '@/Components/app/DeleteFilesButton.vue';
-import DownloadFilesButton from '@/Components/app/DownloadFilesButton.vue';
+import DeleteForeverButton from '@/Components/app/DeleteForeverButton.vue';
 import FileIcon from '@/Components/app/FileIcon.vue';
+import RestoreFilesButton from '@/Components/app/RestoreFilesButton.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { httpGet } from '@/Helper/http-helper';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
 import { computed, onMounted, onUpdated, ref } from 'vue';
 
 const allSelected = ref(false);
@@ -116,15 +80,6 @@ let selectedIds = computed(() => Object.entries(selected.value).filter(a => a[1]
 function cleanIds() {
     allSelected.value = false;
     selected.value = {}
-}
-
-function openFolder(file) {
-
-    if (!file.is_folder) {
-        return
-    }
-
-    router.visit(route('myFiles', { folder: file.path }))
 }
 
 function loadMore() {
