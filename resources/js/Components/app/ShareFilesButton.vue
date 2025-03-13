@@ -1,6 +1,6 @@
 <template>
     <button @click="onClick"
-        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 mr-3">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
             class="size-4 mr-2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -8,15 +8,14 @@
         </svg>
         Share
     </button>
-    <ConfirmationDialog :show="showConfirmationDialog" message="Are you sure you want to restore selected files?"
-        @cancel="onCancel" @confirm="onConfirm" />
+    <ShareFilesModal v-model="showEmailsModal" :all-selected="allSelected" :selected-ids="selectedIds" />
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import ConfirmationDialog from './ConfirmationDialog.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { showErrorDialog, showSuccessNotification } from '@/event-bus';
+import ShareFilesModal from './shareFilesModal.vue';
 
 const page = usePage();
 const form = useForm({
@@ -25,7 +24,7 @@ const form = useForm({
     parent_id: null
 });
 
-const showConfirmationDialog = ref(false);
+const showEmailsModal = ref(false);
 
 const props = defineProps({
     allSelected: {
@@ -43,30 +42,10 @@ const emit = defineEmits(['restore', 'clean'])
 
 function onClick() {
     if (!props.allSelected && !props.selectedIds.length) {
-        showErrorDialog('Please select files to restore');
+        showErrorDialog('Please select files to share');
         return
     }
-    showConfirmationDialog.value = true;
+    showEmailsModal.value = true;
 }
 
-function onCancel() {
-    showConfirmationDialog.value = false;
-}
-
-
-function onConfirm() {
-    if (props.allSelected) {
-        form.all = true;
-    } else {
-        form.ids = props.selectedIds;
-    }
-
-    form.post(route('file.restore'), {
-        onSuccess: () => {
-            showConfirmationDialog.value = false;
-            showSuccessNotification('Selected files have been restored');
-            emit('clean');
-        }
-    })
-}
 </script>

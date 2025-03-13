@@ -31,6 +31,7 @@ import { useForm, usePage } from '@inertiajs/vue3';
 import SecondaryButton from '../SecondaryButton.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import { nextTick, ref } from 'vue';
+import { showSuccessNotification } from '@/event-bus';
 
 const form = useForm({
     name: '',
@@ -49,12 +50,13 @@ const emit = defineEmits(['update:modelValue'])
 
 function createFolder() {
     form.parent_id = page.props.folder.data.id
+    let name = form.name.trim();
     form.post(route('folder.create'), {
         preventScroll: true,
         onSuccess: () => {
             closeModal()
+            showSuccessNotification(`The Folder ${name} has been created successfully`)
             form.reset();
-
         },
 
         onError: () => folderNameInput.value.focus()

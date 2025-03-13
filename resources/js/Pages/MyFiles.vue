@@ -29,6 +29,7 @@
                     <Checkbox @change="showOnlyFavourites" v-model:checked="onlyFavourites" class="mr-2" />
                     Only Favourites
                 </label>
+                <ShareFilesButton :all-selected="allSelected" :selected-ids="selectedIds" />
                 <DownloadFilesButton :all="allSelected" :ids="selectedIds" class="mr-2" />
                 <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @clean="cleanIds" />
             </div>
@@ -45,6 +46,9 @@
                         </th>
                         <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
                             Name
+                        </th>
+                        <th v-if="search" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                            Path
                         </th>
                         <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
                             Owner
@@ -86,6 +90,9 @@
                             <FileIcon :file="file" />
                             {{ file.name }}
                         </td>
+                        <td v-if="search" class="px-2 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ file.path }}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ file.owner }}
                         </td>
@@ -115,7 +122,8 @@ import { httpGet, httpPost } from '@/Helper/http-helper';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUpdated, ref } from 'vue';
-import { showSuccessNotification } from '@/event-bus';
+import { emitter, ON_SEARCH, showSuccessNotification } from '@/event-bus';
+import ShareFilesButton from '@/Components/app/ShareFilesButton.vue';
 
 const allSelected = ref(false);
 const onlyFavourites = ref(false);
@@ -129,6 +137,8 @@ const props = defineProps({
     folder: Object,
     ancestors: Object,
 })
+
+let search = ref('');
 
 const page = usePage();
 
@@ -271,6 +281,10 @@ onUpdated(() => {
 onMounted(() => {
     params = new URLSearchParams(window.location.search);
     onlyFavourites.value = params.get('favourites') === '1';
+    search.value = params.get('search');
+    emitter.on(ON_SEARCH, (value) => {
+        search.value = value
+    })
 
     const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
         rootMargin: '-250px 0px 0px 0px'
