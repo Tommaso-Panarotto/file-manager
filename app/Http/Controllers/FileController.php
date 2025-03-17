@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
+
+use Illuminate\Support\Facades\Gate;
+
 class FileController extends Controller
 {
     public function myFiles(Request $request, string $folder = null)
@@ -100,6 +103,11 @@ class FileController extends Controller
 
     public function sharedWithMe(Request $request) 
     {
+        $user = User::get()->where('id', Auth::id());
+        if (!auth()->user()->hasRole('share')) {
+            abort(401);
+        }
+        
         $search = $request->get('search');
         $query = File::getSharedWithMe();
 
